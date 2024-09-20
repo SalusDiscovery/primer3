@@ -10,6 +10,6 @@ Description: This package provides a direct interface to the thermodynamic
   structures, etc.). The package is self-contained and does not require a
   separate installation of Primer3.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.12.11)
+Imports: Rcpp (>= 0.12.11), seqinr (>= 4.2)
 LinkingTo: Rcpp
 RoxygenNote: 6.1.1
