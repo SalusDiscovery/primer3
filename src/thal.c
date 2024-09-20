@@ -2830,6 +2830,7 @@ calcHairpin(int* bp, double mh, double ms, int temponly, double temp, thal_resul
 {
     int i, N = 0;
     double mg, t;
+    char* asciiRow;
     if (!isFinite(ms) || !isFinite(mh)) {
         if(temponly == 0) {
             #ifdef DEBUG
@@ -2861,6 +2862,27 @@ calcHairpin(int* bp, double mh, double ms, int temponly, double temp, thal_resul
             o->temp = (double) t;
         }
     }
+    
+    /* plain-text output */
+    asciiRow = (char*) safe_malloc(len1, o);
+    for(i = 0; i < len1; ++i) asciiRow[i] = '0';
+    for(i = 1; i < len1+1; ++i) {
+      if(bp[i-1] == 0) {
+        asciiRow[(i-1)] = '-';
+      } else {
+        if(bp[i-1] > (i-1)) {
+          asciiRow[(bp[i-1]-1)]=')';
+        } else {
+          asciiRow[(bp[i-1]-1)]='(';
+        }
+      }
+    }
+    
+    strcpy(o->seq1, asciiRow);
+    // printf("SEQ\t");
+    // for(i = 0; i < len1; ++i) printf("%c",asciiRow[i]);
+    // printf("\nSTR\t%s\n", oligo1);
+    free(asciiRow);
     return;
 }
 
@@ -3038,9 +3060,9 @@ drawHairpin(int* bp, double mh, double ms, int temponly, double temp, thal_resul
       asciiRow[(i-1)] = '-';
     } else {
       if(bp[i-1] > (i-1)) {
-        asciiRow[(bp[i-1]-1)]='\\';
+        asciiRow[(bp[i-1]-1)]=')';
       } else {
-        asciiRow[(bp[i-1]-1)]='/';
+        asciiRow[(bp[i-1]-1)]='(';
       }
     }
   }

@@ -126,19 +126,29 @@ thal <- function(oligo1, oligo2,
 #' @rdname thermo
 #' @export
 calculate_hairpin <- function(oligo, ...) {
-  thal(oligo, oligo, ..., alignment_type = 4L)
+  ret <- thal(oligo, oligo, ..., alignment_type = 4L)
+  
+  # Post-process structure results in R
+  ret$structure <- ret$seq1
+  ret$seq1 <- NULL
+  ret$seq2 <- NULL
+  ret$seq3 <- NULL
+  ret$seq4 <- NULL
+  return(ret)
 }
 
 #' @rdname thermo
 #' @export
 calculate_homodimer <- function(oligo, ...) {
-  thal(oligo, oligo, ..., alignment_type = 1L)
+  calculate_dimer(oligo, oligo, ...)
 }
 
 #' @rdname thermo
 #' @export
 calculate_dimer <- function(oligo1, oligo2, ...) {
   ret <- thal(oligo1, oligo2, ..., alignment_type = 1L)
+  
+  # Post-process structure results in R
   ret$oligo1 <- s2c(tolower(ret$seq1))
   ret$oligo2 <- s2c(tolower(ret$seq4))
   ret$seq2 <- s2c(ret$seq2)
@@ -147,8 +157,9 @@ calculate_dimer <- function(oligo1, oligo2, ...) {
   uppers2 <- ret$seq3 %in% c('A','G','T','C')
   ret$oligo1[uppers1] <- ret$seq2[uppers1]
   ret$oligo2[uppers2] <- ret$seq3[uppers2]
-  ret$oligo1 <- paste(ret$oligo1, collapse='')
-  ret$oligo2 <- paste(ret$oligo2, collapse='')
+  ret$structure <- paste(c(paste(ret$oligo1, collapse=''), '&', paste(ret$oligo2, collapse='')), collapse='')
+  ret$oligo1 <- NULL
+  ret$oligo2 <- NULL
   ret$seq1 <- NULL
   ret$seq2 <- NULL
   ret$seq3 <- NULL
