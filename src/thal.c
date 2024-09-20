@@ -2867,8 +2867,8 @@ calcHairpin(int* bp, double mh, double ms, int temponly, double temp, thal_resul
 static void
 calcDimer(int* ps1, int* ps2, double temp, double H, double S, int temponly, double t37, thal_results *o)
 {
-    int i, N;
-    // char* duplex[4];
+    int i, j, k, numSS1, numSS2, N;
+    char* duplex[4];
     double G, t;
     t = G = 0;
     if (!isFinite(temp)){
@@ -2898,6 +2898,97 @@ calcDimer(int* ps1, int* ps2, double temp, double H, double S, int temponly, dou
             o->temp = (double) t;
         }
     }
+    
+    duplex[0] = (char*) safe_malloc(len1 + len2 + 1, o);
+    duplex[1] = (char*) safe_malloc(len1 + len2 + 1, o);
+    duplex[2] = (char*) safe_malloc(len1 + len2 + 1, o);
+    duplex[3] = (char*) safe_malloc(len1 + len2 + 1, o);
+    duplex[0][0] = duplex[1][0] = duplex[2][0] = duplex[3][0] = 0;
+    
+    i = 0;
+    numSS1 = 0;
+    while (ps1[i++] == 0) ++numSS1;
+    j = 0;
+    numSS2 = 0;
+    while (ps2[j++] == 0) ++numSS2;
+    
+    if (numSS1 >= numSS2) {
+      for (i = 0; i < numSS1; ++i) {
+        strcatc(duplex[0], oligo1[i]);
+        strcatc(duplex[1], ' ');
+        strcatc(duplex[2], ' ');
+      }
+      for (j = 0; j < numSS1 - numSS2; ++j) strcatc(duplex[3], ' ');
+      for (j = 0; j < numSS2; ++j) strcatc(duplex[3], oligo2[j]);
+    } else {
+      for (j = 0; j < numSS2; ++j) {
+        strcatc(duplex[3], oligo2[j]);
+        strcatc(duplex[1], ' ');
+        strcatc(duplex[2], ' ');
+      }
+      for (i = 0; i < numSS2 - numSS1; ++i) {
+        strcatc(duplex[0], ' ');
+      }
+      for (i = 0; i < numSS1; ++i) {
+        strcatc(duplex[0], oligo1[i]);
+      }
+    }
+    i = numSS1 + 1;
+    j = numSS2 + 1;
+    
+    while (i <= len1) {
+      while (i <= len1 && ps1[i - 1] != 0 && j <= len2 && ps2[j - 1] != 0) {
+        strcatc(duplex[0], ' ');
+        strcatc(duplex[1], oligo1[i - 1]);
+        strcatc(duplex[2], oligo2[j - 1]);
+        strcatc(duplex[3], ' ');
+        ++i;
+        ++j;
+      }
+      numSS1 = 0;
+      while (i <= len1 && ps1[i - 1] == 0) {
+        strcatc(duplex[0], oligo1[i - 1]);
+        strcatc(duplex[1], ' ');
+        ++numSS1;
+        ++i;
+      }
+      numSS2 = 0;
+      while (j <= len2 && ps2[j - 1] == 0) {
+        strcatc(duplex[2], ' ');
+        strcatc(duplex[3], oligo2[j - 1]);
+        ++numSS2;
+        ++j;
+      }
+      if (numSS1 < numSS2) {
+        for (k = 0; k < numSS2 - numSS1; ++k) {
+          strcatc(duplex[0], '-');
+          strcatc(duplex[1], ' ');
+        }
+      } else if (numSS1 > numSS2) {
+        for (k = 0; k < numSS1 - numSS2; ++k) {
+          strcatc(duplex[2], ' ');
+          strcatc(duplex[3], '-');
+        }
+      }
+    }
+    strcpy(o->seq1, duplex[0]);
+    strcpy(o->seq2, duplex[1]);
+    strcpy(o->seq3, duplex[2]);
+    strcpy(o->seq4, duplex[3]);
+    // printf("SEQ\t");
+    // printf("%s\n", duplex[0]);
+    // printf("SEQ\t");
+    // printf("%s\n", duplex[1]);
+    // printf("STR\t");
+    // printf("%s\n", duplex[2]);
+    // printf("STR\t");
+    // printf("%s\n", duplex[3]);
+    
+    free(duplex[0]);
+    free(duplex[1]);
+    free(duplex[2]);
+    free(duplex[3]);
+    
     return;
 }
 

@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // call_oligo_tm
 NumericVector call_oligo_tm(CharacterVector oligos, double mv, double dv, double dntp, double dna, int tp, int sc);
 RcppExport SEXP _primer3_call_oligo_tm(SEXP oligosSEXP, SEXP mvSEXP, SEXP dvSEXP, SEXP dntpSEXP, SEXP dnaSEXP, SEXP tpSEXP, SEXP scSEXP) {

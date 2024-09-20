@@ -100,6 +100,10 @@ List call_thal(CharacterVector oligo1,
   NumericVector dg(n);
   IntegerVector align_end_1(n);
   IntegerVector align_end_2(n);
+  CharacterVector seq1(n);
+  CharacterVector seq2(n);
+  CharacterVector seq3(n);
+  CharacterVector seq4(n);
   
   for (int i=0; i<n; i++) {
     results.temp = NULL_REAL;
@@ -114,6 +118,10 @@ List call_thal(CharacterVector oligo1,
     dg[i] = results.dg != NULL_REAL ? results.dg : NA_REAL;
     align_end_1[i] = results.align_end_1;
     align_end_2[i] = results.align_end_2;
+    seq1[i] = results.seq1;
+    seq2[i] = results.seq2;
+    seq3[i] = results.seq3;
+    seq4[i] = results.seq4;
   }
   
   
@@ -123,5 +131,9 @@ List call_thal(CharacterVector oligo1,
                       Named("dh", dh),
                       Named("dg", dg),
                       Named("align_end_1", align_end_1),
-                      Named("align_end_2", align_end_2));
+                      Named("align_end_2", align_end_2),
+                      Named("seq1", seq1),
+                      Named("seq2", seq2),
+                      Named("seq3", seq3),
+                      Named("seq4", seq4));
 }

@@ -125,6 +125,10 @@ typedef struct {
    double dg;           // Added gibbs free energy value
    int align_end_1;
    int align_end_2;
+   char seq1[255];
+   char seq2[255];
+   char seq3[255];
+   char seq4[255];
 } thal_results;
 
 /*** END OF TYPEDEFS ***/
