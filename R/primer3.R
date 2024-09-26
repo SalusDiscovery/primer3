@@ -160,11 +160,18 @@ calculate_hairpin <- function(oligo, ...) {
     ret <- thal(oligo, oligo, ..., alignment_type = 4L)
     
     # Post-process structure results in R
-    if(any(!validUTF8(ret$seq1)))
+    temp <- s2c(ret$seq1)
+    # Catch and remove odd characters
+    temp <- temp[validUTF8(temp)]
+    if(length(temp) > n)
     {
-      ret$structure <- ''
+      temp <- temp[temp %in% c('-','(',')')]
+      if(length(temp) > n)
+      {
+        temp <- temp[1:n]
+      }
     }
-    ret$structure <- ret$seq1
+    ret$structure <- paste(temp, collapse='')
     ret$seq1 <- NULL
     ret$seq2 <- NULL
     ret$seq3 <- NULL
@@ -185,6 +192,7 @@ calculate_homodimer <- function(oligo, ...) {
 }
 
 #' @rdname thermo
+#' @importFrom seqinr s2c
 #' @export
 calculate_dimer <- function(oligo1, oligo2, ...) {
   if(calcLen(oligo1) > 47 || calcLen(oligo2) > 47)
