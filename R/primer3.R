@@ -49,18 +49,42 @@ NULL
 TM_METHODS <- c("Breslauer", "SantaLucia")
 SALT_CORRECTION_METHODS <- c("Schildkraut", "SantaLucia", "Owczarzy")
 
+toLower <- function(x)
+{
+  # print(x)
+  ret <- tryCatch(tolower(x),
+                  error=function(cond){
+                    print(x)
+                    browser()
+                    return(NULL)
+                  })
+  return(ret)
+}
+
+toUpper <- function(x)
+{
+  # print(x)
+  ret <- tryCatch(toupper(x),
+                  error=function(cond){
+                    print(x)
+                    browser()
+                    return(NULL)
+                  })
+  return(ret)
+}
+
 #' @rdname thermo
 #' @export
 calculate_tm <- function(oligos, 
-                     salt_conc=50.0, 
-                     divalent_conc=0.0, 
-                     dntp_conc=0.0, 
-                     dna_conc=50.0,
-                     nn_max_len=60,
-                     tm_method="SantaLucia",
-                     salt_correction="SantaLucia") {
-  tm_method <- pmatch(tolower(tm_method), tolower(TM_METHODS)) - 1L
-  salt_correction <- pmatch(tolower(salt_correction), tolower(SALT_CORRECTION_METHODS)) - 1L
+                         salt_conc=50.0, 
+                         divalent_conc=0.0, 
+                         dntp_conc=0.0, 
+                         dna_conc=50.0,
+                         nn_max_len=60,
+                         tm_method="SantaLucia",
+                         salt_correction="SantaLucia") {
+  tm_method <- pmatch(toLower(tm_method), toLower(TM_METHODS)) - 1L
+  salt_correction <- pmatch(toLower(salt_correction), toLower(SALT_CORRECTION_METHODS)) - 1L
   if (is.na(tm_method) || is.na(salt_correction)) {
     stop("Invalid Tm or salt correction method.")
   }
@@ -114,7 +138,7 @@ thal <- function(oligo1, oligo2,
   temp <- temp_c + 273.15  # temp must be absolute
   print_output <- as.integer(print_output)
   results <- call_thal(oligo1, oligo2, as.integer(debug), alignment_type, maxloop, mv, dv, dntp, dna, temp, as.integer(temp_only), as.integer(dimer), as.integer(print_output))
-
+  
   if (print_output) {
     # the return values are messed up when printing; call twice
     return(NULL)
@@ -126,45 +150,71 @@ thal <- function(oligo1, oligo2,
 #' @rdname thermo
 #' @export
 calculate_hairpin <- function(oligo, ...) {
-  ret <- thal(oligo, oligo, ..., alignment_type = 4L)
-  
-  # Post-process structure results in R
-  ret$structure <- ret$seq1
-  ret$seq1 <- NULL
-  ret$seq2 <- NULL
-  ret$seq3 <- NULL
-  ret$seq4 <- NULL
-  return(ret)
+  n <- calcLen(oligo)
+  if(n > 47) # max size allowed by primer3
+  {
+    return(list(structure_found=F, temp=0, dg=0, structure=''))
+  }
+  else
+  {
+    ret <- thal(oligo, oligo, ..., alignment_type = 4L)
+    
+    # Post-process structure results in R
+    if(any(!validUTF8(ret$seq1)))
+    {
+      ret$structure <- ''
+    }
+    ret$structure <- ret$seq1
+    ret$seq1 <- NULL
+    ret$seq2 <- NULL
+    ret$seq3 <- NULL
+    ret$seq4 <- NULL
+    return(ret)
+  }
+}
+
+calcLen <- function(oligo)
+{
+  return(ifelse(length(oligo)==1, nchar(oligo), length(oligo)))
 }
 
 #' @rdname thermo
 #' @export
 calculate_homodimer <- function(oligo, ...) {
-  calculate_dimer(oligo, oligo, ...)
+  return(calculate_dimer(oligo, oligo, ...))
 }
 
 #' @rdname thermo
 #' @export
 calculate_dimer <- function(oligo1, oligo2, ...) {
-  ret <- thal(oligo1, oligo2, ..., alignment_type = 1L)
-  
-  # Post-process structure results in R
-  ret$oligo1 <- s2c(tolower(ret$seq1))
-  ret$oligo2 <- s2c(tolower(ret$seq4))
-  ret$seq2 <- s2c(ret$seq2)
-  ret$seq3 <- s2c(ret$seq3)
-  uppers1 <- ret$seq2 %in% c('A','G','T','C')
-  uppers2 <- ret$seq3 %in% c('A','G','T','C')
-  ret$oligo1[uppers1] <- ret$seq2[uppers1]
-  ret$oligo2[uppers2] <- ret$seq3[uppers2]
-  ret$structure <- paste(c(paste(ret$oligo1, collapse=''), '&', paste(ret$oligo2, collapse='')), collapse='')
-  ret$oligo1 <- NULL
-  ret$oligo2 <- NULL
-  ret$seq1 <- NULL
-  ret$seq2 <- NULL
-  ret$seq3 <- NULL
-  ret$seq4 <- NULL
-  return(ret)
+  if(calcLen(oligo1) > 47 || calcLen(oligo2) > 47)
+  {
+    return(list(structure_found=F, temp=0, dg=0, structure=''))
+  }
+  else
+  {
+    ret <- thal(oligo1, oligo2, ..., alignment_type = 1L)
+    
+    # # Post-process structure results in R
+    ret$oligo1 <- s2c(toLower(ret$seq1))
+    ret$oligo2 <- s2c(toLower(ret$seq4))
+    ret$seq2 <- s2c(ret$seq2)
+    ret$seq3 <- s2c(ret$seq3)
+    uppers1 <- ret$seq2 %in% c('A','G','T','C')
+    uppers2 <- ret$seq3 %in% c('A','G','T','C')
+    ret$oligo1[uppers1] <- ret$seq2[uppers1]
+    ret$oligo2[uppers2] <- ret$seq3[uppers2]
+    ret$oligo1 <- ret$oligo1[validUTF8(ret$oligo1)]
+    ret$oligo2 <- ret$oligo2[validUTF8(ret$oligo2)]
+    ret$structure <- paste(c(paste(ret$oligo1, collapse=''), '&', paste(ret$oligo2, collapse='')), collapse='')
+    ret$oligo1 <- NULL
+    ret$oligo2 <- NULL
+    ret$seq1 <- NULL
+    ret$seq2 <- NULL
+    ret$seq3 <- NULL
+    ret$seq4 <- NULL
+    return(ret)
+  }
 }
 
 #' @export
