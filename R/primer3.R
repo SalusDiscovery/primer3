@@ -159,19 +159,8 @@ calculate_hairpin <- function(oligo, ...) {
   {
     ret <- thal(oligo, oligo, ..., alignment_type = 4L)
     
-    # Post-process structure results in R
-    temp <- s2c(ret$seq1)
-    # Catch and remove odd characters
-    temp <- temp[validUTF8(temp)]
-    if(length(temp) > n)
-    {
-      temp <- temp[temp %in% c('-','(',')')]
-      if(length(temp) > n)
-      {
-        temp <- temp[1:n]
-      }
-    }
-    ret$structure <- paste(temp, collapse='')
+    # print(ret$seq1)
+    ret$structure <- paste(normalizeHpString(ret$seq1, n), collapse='')
     ret$seq1 <- NULL
     ret$seq2 <- NULL
     ret$seq3 <- NULL
@@ -191,6 +180,31 @@ calculate_homodimer <- function(oligo, ...) {
   return(calculate_dimer(oligo, oligo, ...))
 }
 
+
+normalizeHpString <- function(x, n)
+{
+  normalizeString(x, n=n, allowedChars=c('-','(',')'))
+}
+
+normalizeDimerString <- function(x)
+{
+  normalizeString(x, n=NULL, allowedChars=c('A','G','T','C','-',' ','&'))
+}
+
+normalizeString <- function(x, n, allowedChars=c('-','(',')'))
+{
+  # Post-process structure results in R
+  temp <- s2c(x)
+  # Catch and remove odd characters
+  temp <- temp[validUTF8(temp)]
+  temp <- temp[temp %in% allowedChars]
+  if(!is.null(n) && length(temp) > n)
+  {
+    temp <- temp[1:n]
+  }
+  return(temp)
+}
+
 #' @rdname thermo
 #' @importFrom seqinr s2c
 #' @export
@@ -204,10 +218,15 @@ calculate_dimer <- function(oligo1, oligo2, ...) {
     ret <- thal(oligo1, oligo2, ..., alignment_type = 1L)
     
     # # Post-process structure results in R
-    ret$oligo1 <- s2c(toLower(ret$seq1))
-    ret$oligo2 <- s2c(toLower(ret$seq4))
-    ret$seq2 <- s2c(ret$seq2)
-    ret$seq3 <- s2c(ret$seq3)
+    # print(ret$seq1)
+    # print(ret$seq4)
+    # print(ret$seq2)
+    # print(ret$seq3)
+    # browser()
+    ret$oligo1 <- toLower(normalizeDimerString(ret$seq1))
+    ret$oligo2 <- toLower(normalizeDimerString(ret$seq4))
+    ret$seq2 <- normalizeDimerString(ret$seq2)
+    ret$seq3 <- normalizeDimerString(ret$seq3)
     uppers1 <- ret$seq2 %in% c('A','G','T','C')
     uppers2 <- ret$seq3 %in% c('A','G','T','C')
     ret$oligo1[uppers1] <- ret$seq2[uppers1]
