@@ -151,8 +151,9 @@ thal <- function(oligo1, oligo2,
 #' @export
 calculate_hairpin <- function(oligo, ...) {
   n <- calcLen(oligo)
-  if(n > 47) # max size allowed by primer3
+  if(n > 60) # THAL_MAX_ALIGN=60 allowed by primer3
   {
+    warning("Length of oligo exceeds the max length allowed for hairpin calculations (60) in primer3 package.")
     return(list(structure_found=F, temp=0, dg=0, structure=''))
   }
   else
