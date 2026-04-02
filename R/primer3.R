@@ -150,7 +150,7 @@ thal <- function(oligo1, oligo2,
 #' @rdname thermo
 #' @export
 calculate_hairpin <- function(oligo, ...) {
-  n <- calcLen(oligo)
+  n <- primer3:::calcLen(oligo)
   if(n > 60) # THAL_MAX_ALIGN=60 allowed by primer3
   {
     warning("Length of oligo exceeds the max length allowed for hairpin calculations (60) in primer3 package.")
@@ -158,7 +158,7 @@ calculate_hairpin <- function(oligo, ...) {
   }
   else
   {
-    ret <- thal(oligo, oligo, ..., alignment_type = 4L)
+    ret <- primer3:::thal(oligo, oligo, ..., alignment_type = 4L)
     
     # print(ret$seq1)
     ret$structure <- paste(normalizeHpString(ret$seq1, n), collapse='')

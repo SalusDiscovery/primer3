@@ -8,9 +8,16 @@
 \alias{calculate_dimer}
 \title{Thermodynamic calculations with Primer3}
 \usage{
-calculate_tm(oligos, salt_conc = 50, divalent_conc = 0,
-  dntp_conc = 0, dna_conc = 50, nn_max_len = 60,
-  tm_method = "SantaLucia", salt_correction = "SantaLucia")
+calculate_tm(
+  oligos,
+  salt_conc = 50,
+  divalent_conc = 0,
+  dntp_conc = 0,
+  dna_conc = 50,
+  nn_max_len = 60,
+  tm_method = "SantaLucia",
+  salt_correction = "SantaLucia"
+)
 
 calculate_hairpin(oligo, ...)
 
